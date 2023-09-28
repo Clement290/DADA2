@@ -1,0 +1,173 @@
+---
+title: "R Notebook"
+output: github_document
+---
+
+# Tutoriel DADA2
+
+## Partie 1 tutoriel
+```{bash, eval=FALSE}
+wget https://github.com/ANF-MetaBioDiv/course-material/archive/refs/heads/main.zip
+unzip main.zip
+```
+
+
+```{r, eval=FALSE}
+refdb_folder <- here::here("data", "refdb") # dans le package here il va chercher here 
+refdb_folder
+```
+
+```{r, eval=FALSE}
+if (!dir.exists(refdb_folder)) dir.create(refdb_folder, recursive = TRUE) # créer le vrai fichier refdb_folder si il n'existe pas
+```
+
+```{bash, eval=FALSE}
+cp -R course-material-main/data/raw ./data
+```
+
+
+
+```{r, eval=FALSE}
+# R stop downloading after timeout which is
+# 60 seconds by default
+getOption("timeout")
+
+```
+```{r, eval=FALSE}
+# so we change timeout to be 20 minutes
+options(timeout = 1200)
+
+# we save in variable the path to the refdb
+# in the working space
+silva_train_set <- file.path(refdb_folder,
+                             "silva_nr99_v138.1_train_set.fa.gz")
+
+silva_species_assignment <- file.path(refdb_folder,
+                                      "silva_species_assignment_v138.1.fa.gz")
+
+```
+
+
+```{r, eval=FALSE}
+# then we download the files if they don't already exist
+
+if (!file.exists(silva_train_set)) {
+  download.file(
+    "https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz",
+    silva_train_set,
+    quiet = TRUE
+  )
+}
+
+if (!file.exists(silva_species_assignment)) {
+  download.file(
+    "https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz",
+    silva_species_assignment,
+    quiet = TRUE
+  )
+}
+```
+
+## Partie 2 tutoriel
+
+```{r}
+path_to_fastqs <- here::here("data","raw")
+path_to_fastqs
+```
+
+```{r}
+fnFs <- sort(list.files(path_to_fastqs,
+                        pattern = "_R1.fastq.gz",
+                        full.names = TRUE))
+fnFs
+```
+
+```{r}
+fnRs <- sort(list.files(path_to_fastqs,
+                        pattern = "_R2.fastq.gz",
+                        full.names = TRUE))
+fnRs
+```
+
+```{r}
+sample_names <- basename(fnFs) |>
+  strsplit(split = "_") |>
+  sapply(head, 1)
+```
+
+```{r}
+basename(fnFs) |>
+  head()
+```
+```{r}
+basename(fnFs) |>
+  strsplit(split = "_") |>
+  head()
+```
+```{r}
+basename(fnFs) |>
+  strsplit(split = "_") |>
+  sapply(head, 1) |>
+  head()
+```
+```{r}
+gsub("^.+/|_.+$", "", fnFs) |> head()
+```
+```{r}
+devtools::load_all(path="/home/rstudio/DADA2/course-material-main/R")
+```
+## Partie 3 tutoriel
+
+```{r}
+# create a directory for the outputs
+quality_folder <- here::here("outputs",
+                             "dada2",
+                             "quality_plots")
+
+if (!dir.exists(quality_folder)) {
+  dir.create(quality_folder, recursive = TRUE)
+}
+
+qualityprofile(fnFs,
+               fnRs,
+               file.path(quality_folder, "quality_plots.pdf"))
+```
+## Partie 4 Tutoriel
+
+```{r}
+path_to_trimmed_reads <- here::here(
+  "outputs",
+  "dada2",
+  "trimmed"
+)
+
+if (!dir.exists(path_to_trimmed_reads)) dir.create(path_to_trimmed_reads, recursive = TRUE)
+```
+
+
+```{r}
+primer_fwd  <- "CCTACGGGNBGCASCAG"
+primer_rev  <- "GACTACNVGGGTATCTAAT"
+```
+
+```{r}
+Biostrings::readDNAStringSet(
+  fnFs[1],
+  format = "fastq",
+  nrec = 10
+)
+```
+
+```{r}
+Biostrings::readDNAStringSet(
+  fnRs[1],
+  format = "fastq",
+  nrec = 10
+)
+```
+
+
+
+
+
+
